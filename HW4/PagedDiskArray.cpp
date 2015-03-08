@@ -22,7 +22,7 @@ PagedDiskArray::PagedDiskArray(size_t pageSize, size_t numPages, const char*file
 }
 
 PagedDiskArray::~PagedDiskArray() {
-    
+    Flush();
     fclose(pageFile);
     delete this;
 }
@@ -57,7 +57,11 @@ void PagedDiskArray::WritePageIfDirty(PageFrame *f) {
 }
 
 void PagedDiskArray::Flush() {
-    
+    for(int i = 0; i < numPageFrames; i++) {
+        if(frames[i].dirty) {
+            fwrite(frames[i].buffer, frames->pageLoaded, 1, pageFile);
+        }
+    }
 }
 
 void PagedDiskArray::LoadPage(size_t pageNum, PageFrame *f) {
@@ -65,11 +69,12 @@ void PagedDiskArray::LoadPage(size_t pageNum, PageFrame *f) {
 }
 
 PagedDiskArray::PageFrame *PagedDiskArray::GetPageFrame(size_t pageNum) {
-    if(pageNum!= '\0' && pageNum <= pageSize) {
-        return frames;
+    for(int i = 0; i < numPages; i++) {
+        if(pageNum == frames->pageLoaded) {
+            return &frames[i];
+        }
     }
-    else
-        return nullptr;
+    return nullptr;
 }
 
 uint8_t *PagedDiskArray::GetElement(size_t index, bool dirty) {
