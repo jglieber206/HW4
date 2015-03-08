@@ -9,12 +9,10 @@
 #include <cstdio>
 
 // Implement the PagedDiskArray class here
-uint8_t obj[] = 12;
+//uint8_t obj[] = 12;
 
 
-PagedDiskArray::PagedDiskArray(size_t pageSize, size_t numPages, const char*fileName) {
-    pageSize = obj;
-    numPages =
+PagedDiskArray::PagedDiskArray(size_t pageSize, size_t numPages, const char*fileName) : pageSize(1), numPages(1), arraySize(pageSize*numPages) {
 }
 
 PagedDiskArray::~PagedDiskArray() {
@@ -29,3 +27,18 @@ void PagedDiskArray::set(size_t index, uint8_t value) {
     
 }
 
+void PagedDiskArray::WritePageIfDirty(<#PagedDiskArray::PageFrame *f#>) {
+    
+}
+
+void PagedDiskArray::Flush() {
+    
+}
+
+void PagedDiskArray::LoadPage(size_t pageNum, PageFrame *f) {
+    
+}
+
+PageFrame PagedDiskArray::*GetPageFrame(size_t pageNum) {
+    
+}
