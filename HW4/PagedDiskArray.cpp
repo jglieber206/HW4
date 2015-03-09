@@ -10,15 +10,20 @@
 
 // Implement the PagedDiskArray class here
 
-PagedDiskArray::PagedDiskArray(size_t pageSize, size_t numPages, const char*fileName) : pageSize(1), numPages(1), arraySize(pageSize*numPages) {
+
+PagedDiskArray::PagedDiskArray(size_t pageSize, size_t numPages, const char*fileName) : pageSize(1), numPages(1), arraySize(pageSize*numPages)
+{
+    fileName = "Paged_Disk_File";
+    
+    pageFile = fopen("fileName", "w+b");
+    
     uint8_t array[arraySize];
     
-    pageFile = fopen("Paged_Disk_File", "w+b");
-
-    //initialize array
-    for(int i = 0; i < arraySize; ++i) {
+    for (int i = 0; i < arraySize; ++i)
+    {
         array[i] = 0;
     }
+    
 }
 
 PagedDiskArray::~PagedDiskArray() {
@@ -28,65 +33,102 @@ PagedDiskArray::~PagedDiskArray() {
 }
 
 uint8_t PagedDiskArray::operator[](size_t index) {
-    return index;
+    return *GetElement(index, false);
 }
 
 
-/*****************************
- *
- *  Help!!
- *
- *****************************/
-void PagedDiskArray::set(size_t index, uint8_t value) {
-    size_t myPageNum = index/pageSize;
-    size_t offset = index % pageSize;
-    if(frames->pageLoaded == myPageNum) {
-        frames->dirty = true;
+//FIXME
+void PagedDiskArray::set(size_t index, uint8_t value)
+{
+    GetElement(index, false);
+    if(frames->pageLoaded == numPages)
+    {
         frames->buffer = &value;
+        frames->dirty = true;
     }
-    pseudoTime ++;
+    pseudoTime++;
     frames->accessPTime = pseudoTime;
-    
 }
 
-void PagedDiskArray::WritePageIfDirty(PageFrame *f) {
-    if(frames->dirty) {
+// Write all dirty pages to the disk file
+void PagedDiskArray::Flush()
+{
+    for(int i = 0; i < numPageFrames; ++i)
+    {
+        if (frames[i].dirty)
+        {
+//            fwrite( , frames->pageLoaded, 1, pageFile);
+        }
+    }
+}
+
+void PagedDiskArray::WritePageIfDirty(PageFrame *f)
+{
+    if (f->dirty == true)
+    {
         fwrite(f, f->pageLoaded, 1, pageFile);
         f->dirty = false;
     }
 }
 
-void PagedDiskArray::Flush() {
-    for(int i = 0; i < numPageFrames; i++) {
-        if(frames[i].dirty) {
-            fwrite(frames[i].buffer, frames->pageLoaded, 1, pageFile);
-        }
-    }
-}
-
-void PagedDiskArray::LoadPage(size_t pageNum, PageFrame *f) {
+void PagedDiskArray::LoadPage(size_t pageNum, PageFrame *f)
+{
     f->pageLoaded = pageNum;
+    f->accessPTime++;
 }
 
-PagedDiskArray::PageFrame *PagedDiskArray::GetPageFrame(size_t pageNum) {
-    for(int i = 0; i < numPages; i++) {
-        if(pageNum == frames->pageLoaded) {
+PagedDiskArray::PageFrame *PagedDiskArray::GetPageFrame(size_t pageNum)
+{
+    for(int i = 0; i < numPages; i++)
+    {
+        if (pageNum == frames->pageLoaded)
+        {
             return &frames[i];
         }
+        
     }
+    
     return nullptr;
+    
 }
 
-uint8_t *PagedDiskArray::GetElement(size_t index, bool dirty) {
-    GetPageFrame(index);
-    
-    if(dirty) {
-        frames->dirty = true;
+PagedDiskArray::PageFrame *PagedDiskArray::ChooseReplacementFrame()
+{
+    //PageFrame *mew =
+    if (frames->dirty)
+    {
+        WritePageIfDirty(frames);
     }
-
-    uint8_t returnVal = operator[](index);
     
-    return &returnVal;
+    for (int i = 0; i < frames->accessPTime; i++)
+    {
+        
+    }
+    
+    return frames;
 }
 
-
+uint8_t *PagedDiskArray::GetElement(size_t index, bool dirty)
+{
+    size_t myPageNum = index/pageSize;
+    size_t offset = index%pageSize;
+    
+    PageFrame *f = GetPageFrame(myPageNum);
+    if (f == nullptr)
+    {
+        f = ChooseReplacementFrame();
+        WritePageIfDirty(f);
+        LoadPage(myPageNum, f);
+    }
+   
+    if (dirty == true)
+        f->dirty = true;
+    
+    // update accessPTime
+    f->accessPTime++;
+    
+    return &f->buffer[offset];
+    //
+    //    if (dirty ==false)
+    //        frames->dirty = false;
+}
