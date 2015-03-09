@@ -57,7 +57,7 @@ void PagedDiskArray::Flush()
     {
         if (frames[i].dirty)
         {
-//            fwrite( , frames->pageLoaded, 1, pageFile);
+            //            fwrite( , frames->pageLoaded, 1, pageFile);
         }
     }
 }
@@ -120,7 +120,7 @@ uint8_t *PagedDiskArray::GetElement(size_t index, bool dirty)
         WritePageIfDirty(f);
         LoadPage(myPageNum, f);
     }
-   
+    
     if (dirty == true)
         f->dirty = true;
     
